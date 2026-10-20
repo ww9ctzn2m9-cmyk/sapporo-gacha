@@ -69,7 +69,7 @@ function home(){S=null;stage='home';count=null;render('<div class="kicker">ス�
 function chooseMode(m){mode=m;$('#mode-hand').classList.toggle('active',m==='hand');$('#mode-random').classList.toggle('active',m==='random')}
 function chooseCount(n){let saved=[...document.querySelectorAll('.namefield')].map(x=>x.value);count=n;document.querySelectorAll('.count-option').forEach(b=>b.classList.toggle('active',b.id==='count-'+n));$('#name-step').classList.remove('hidden');$('#names').innerHTML=Array.from({length:n},(_,i)=>'<label class="name-item"><span>'+(i+1)+'人目</span><input maxlength="16" class="field namefield" placeholder="プレイヤー'+(i+1)+'" value="'+esc(saved[i]||'')+'"></label>').join('')}
 function begin(){names=[...document.querySelectorAll('.namefield')].map((x,i)=>x.value.trim()||'プレイヤー'+(i+1));init()}
-function init(){S={people:names.map((n,i)=>({name:n,id:i,secret:pick(tasks),pending:null,hand:[],alive:true})),turn:0,dir:1,winner:null,log:[],mode,skip:0};for(let p of S.people)refill(p);stage='pass';display()}
+function init(){turnCounter=0;S={people:names.map((n,i)=>({name:n,id:i,secret:pick(tasks),pending:null,hand:[],alive:true})),turn:0,dir:1,winner:null,log:[],mode,skip:0};for(let p of S.people)refill(p);stage='pass';display()}
 function refill(p){while(p.hand.length<3)p.hand.push(pick(deck))}
 function nextTurn(){S.turn=(S.turn+S.dir+S.people.length)%S.people.length;turnCounter++;stage='pass';display()}
 function person(){return S.people[S.turn]}
@@ -84,9 +84,7 @@ if(stage==='card'){render(header()+'<div class="panel center"><h2>カード発�
 if(stage==='judge'){render(header()+'<div class="panel center"><h2>🎉 達成発表タイム！</h2><p>全員に画面を見せて、実際に達成したか判定しよう</p><div class="title">'+esc(currentCard.title)+'</div><p>'+esc(currentCard.desc)+'</p></div>'+button('成功！ 優勝！','decide(true)')+button('失敗！ 続行','decide(false)','secondary'));return}
 }
 function ready(){stage='ready';display()}
-function select(i){let p=person();if(p.pending)return;p.hand.splice(i,1);currentCard=arguments.length?currentCard:null;currentCard=selectedCard;}
-// Rebound below to keep selected card before removing it
-select=function(i){let p=person();if(p.pending||stage!=='ready')return;currentCard=p.hand.splice(i,1)[0];refill(p);playCard()}
+function select(i){let p=person();if(p.pending||stage!=='ready')return;currentCard=p.hand.splice(i,1)[0];refill(p);playCard()}
 function drawCard(){if(stage!=='ready'||person().pending)return;currentCard=pick(deck);playCard()}
 function playCard(){if(currentCard.kind==='mission')person().pending=currentCard;else{if(currentCard.title.includes('逆回転'))S.dir*=-1;if(currentCard.title==='順番飛ばし')S.skip=1;if(currentCard.title==='おかわり')S.skip=-1;}stage='card';display()}
 function advance(){if(stage==='card'||stage==='ready'){if(S.skip===1){S.skip=0;S.turn=(S.turn+S.dir+S.people.length)%S.people.length}if(S.skip===-1){S.skip=0;stage='pass';display();return}nextTurn()}}
